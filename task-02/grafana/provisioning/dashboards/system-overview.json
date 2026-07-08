@@ -183,7 +183,7 @@
         },
         {
             "id": 6,
-            "title": "API Error Rate (5xx, by route)",
+            "title": "API Error Rate (4xx & 5xx, by route)",
             "type": "timeseries",
             "gridPos": {
                 "x": 8,
@@ -198,7 +198,7 @@
             "targets": [
                 {
                     "refId": "A",
-                    "expr": "sum(rate(http_requests_total{status=~\"5..\"}[1m])) by (route)",
+                    "expr": "sum(rate(http_requests_total{status=~\"[45]..\"}[1m])) by (route)",
                     "legendFormat": "{{route}}",
                     "datasource": {
                         "type": "prometheus",
