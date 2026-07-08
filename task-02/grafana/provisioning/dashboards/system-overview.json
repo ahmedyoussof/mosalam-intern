@@ -198,8 +198,8 @@
             "targets": [
                 {
                     "refId": "A",
-                    "expr": "sum(rate(http_requests_total{status=~\"[45]..\"}[1m])) by (route)",
-                    "legendFormat": "{{route}}",
+                    "expr": "sum(rate(http_requests_total{status=~\"[45]..\", route=~\"/api.*\"}[1m])) by (route, status)",
+                    "legendFormat": "{{route}} - {{status}}",
                     "datasource": {
                         "type": "prometheus",
                         "uid": "prometheus"
