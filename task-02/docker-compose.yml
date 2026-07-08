@@ -1,6 +1,7 @@
 services:
     db:
         image: mariadb:noble
+        container_name: db
         restart: always
         healthcheck:
             test: [ 'CMD-SHELL', 'mariadb-admin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent' ]
@@ -32,6 +33,41 @@ services:
                     cpus: '0.5'
                     memory: 250M
 
+    mysqld-exporter:
+        image: prom/mysqld-exporter:latest
+        container_name: mysqld-exporter
+        restart: unless-stopped
+        secrets:
+            - db-password
+        # busybox-based image: build a [client] cnf from the shared secret at
+        # startup instead o f putting the password in an env var/DSN.
+        entrypoint: [ '/bin/sh', '-c' ]
+        command:
+            - |
+              printf '[client]\nuser=root\npassword=%s\nhost=db\nport=3306\n' "$$(cat /run/secrets/db-password)" > /tmp/my.cnf
+              exec mysqld_exporter --config.my-cnf=/tmp/my.cnf
+        depends_on:
+            db:
+                condition: service_healthy
+        expose:
+            - 9104
+        networks:
+            - db-net
+            - monitoring-net
+        logging:
+            driver: local
+            options:
+                max-size: '5m'
+                max-file: '2'
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.1'
+                    memory: 64M
+                reservations:
+                    cpus: '0.05'
+                    memory: 32M
+
     backend:
         build:
             context: backend
@@ -51,6 +87,7 @@ services:
         networks:
             - db-net
             - backend-net
+            - monitoring-net
         logging:
             driver: json-file
             options:
@@ -58,6 +95,7 @@ services:
                 max-file: '5'
                 tag: '{{.Name}}'
         deploy:
+            replicas: 2
             resources:
                 limits:
                     cpus: '0.25'
@@ -68,6 +106,7 @@ services:
     frontend:
         image: nginx:alpine
         restart: unless-stopped
+        container_name: frontend
         volumes:
             - ./frontend:/usr/share/nginx/html:ro
             - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -101,6 +140,7 @@ services:
 
     proxy:
         image: nginx
+        container_name: proxy
         restart: always
         volumes:
             - type: bind
@@ -203,6 +243,7 @@ services:
         restart: unless-stopped
         volumes:
             - grafana-data:/var/lib/grafana
+            - ./grafana/provisioning:/etc/grafana/provisioning:ro
         ports:
             - 3000:3000
         depends_on:

@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -36,6 +39,43 @@ var ErrDuplicateName = errors.New("item with this name already exists")
 var ErrItemNotFound = errors.New("item not found")
 
 const mysqlErrDuplicateEntry = 1062
+
+var (
+	httpRequestsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Total HTTP requests handled, by method, route and status code.",
+	}, []string{"method", "route", "status"})
+
+	httpRequestDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "http_request_duration_seconds",
+		Help:    "HTTP request latency in seconds, by method and route.",
+		Buckets: prometheus.DefBuckets,
+	}, []string{"method", "route"})
+)
+
+// statusRecorder wraps a ResponseWriter to capture the status code written,
+// since http.ResponseWriter doesn't expose it after the fact.
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(status int) {
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
+// withMetrics records request count and latency for a handler under a fixed
+// route label (never the raw URL), so per-item IDs can't blow up cardinality.
+func withMetrics(method, route string, h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		h(rec, r)
+		httpRequestsTotal.WithLabelValues(method, route, strconv.Itoa(rec.status)).Inc()
+		httpRequestDuration.WithLabelValues(method, route).Observe(time.Since(start).Seconds())
+	}
+}
 
 func loadPassword(path string) string {
 	data, err := os.ReadFile(path)
@@ -277,9 +317,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handleHealthz(db))
-	mux.HandleFunc("GET /api/{$}", handleList(db))
-	mux.HandleFunc("POST /api/items", handleCreate(db))
-	mux.HandleFunc("DELETE /api/items/{id}", handleDelete(db))
+	mux.HandleFunc("GET /api/{$}", withMetrics("GET", "/api", handleList(db)))
+	mux.HandleFunc("POST /api/items", withMetrics("POST", "/api/items", handleCreate(db)))
+	mux.HandleFunc("DELETE /api/items/{id}", withMetrics("DELETE", "/api/items/{id}", handleDelete(db)))
+	mux.Handle("GET /metrics", promhttp.Handler())
 
 	log.Println("Listening on :8000")
 	log.Fatal(http.ListenAndServe(":8000", mux))
