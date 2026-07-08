@@ -180,8 +180,7 @@ services:
         privileged: true
         restart: unless-stopped
         command:
-            - --containerd=/var/run/docker/containerd/containerd.sock
-            - --docker_only
+            - --docker_only=true
 
         devices:
             - /dev/kmsg:/dev/kmsg
@@ -191,6 +190,7 @@ services:
             - /sys:/sys:ro
             - /var/lib/docker/:/var/lib/docker:ro
             - /dev/disk/:/dev/disk:ro
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
         ports:
             - "8088:8080"
         networks:
