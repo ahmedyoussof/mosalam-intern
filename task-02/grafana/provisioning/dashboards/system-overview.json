@@ -116,7 +116,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "short"
                 },
@@ -154,7 +156,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "bytes"
                 },
@@ -192,7 +196,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "reqps"
                 },
@@ -230,7 +236,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "reqps"
                 },
@@ -284,7 +292,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "s"
                 },
@@ -340,7 +350,9 @@
                         "drawStyle": "line",
                         "lineInterpolation": "linear",
                         "fillOpacity": 15,
-                        "gradientMode": "opacity"
+                        "gradientMode": "opacity",
+                        "showPoints": "always",
+                        "pointSize": 5
                     },
                     "unit": "short"
                 },
