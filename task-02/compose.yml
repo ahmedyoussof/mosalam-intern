@@ -1,0 +1,241 @@
+services:
+    db:
+        image: mariadb:noble
+        restart: always
+        healthcheck:
+            test: [ 'CMD-SHELL', 'mariadb-admin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent' ]
+            interval: 3s
+            retries: 5
+            start_period: 30s
+        secrets:
+            - db-password
+        volumes:
+            - db-data:/var/lib/mysql
+        environment:
+            - MYSQL_DATABASE=web-db
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+        expose:
+            - 3306
+        networks:
+            - db-net
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '5'
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.85'
+                    memory: 400M
+                reservations:
+                    cpus: '0.5'
+                    memory: 250M
+
+    backend:
+        build:
+            context: backend
+            target: runtime
+        restart: unless-stopped
+        secrets:
+            - db-password
+        depends_on:
+            db:
+                condition: service_healthy
+        healthcheck:
+            test: [ 'CMD', '/usr/local/bin/backend', '-healthcheck' ]
+            interval: 3s
+            timeout: 3s
+            retries: 5
+            start_period: 10s
+        networks:
+            - db-net
+            - backend-net
+        logging:
+            driver: json-file
+            options:
+                max-size: '10m'
+                max-file: '5'
+                tag: '{{.Name}}'
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.25'
+                    memory: 64M
+                reservations:
+                    cpus: '0.1'
+                    memory: 32M
+    frontend:
+        image: nginx:alpine
+        restart: unless-stopped
+        volumes:
+            - ./frontend:/usr/share/nginx/html:ro
+            - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+        expose:
+            - 80
+        depends_on:
+            backend:
+                condition: service_healthy
+        healthcheck:
+            test: [ 'CMD', 'curl', '-f', 'http://localhost/' ]
+            interval: 3s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+        networks:
+            - backend-net
+            - frontend-net
+        logging:
+            driver: local
+            options:
+                max-size: '5m'
+                max-file: '3'
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.15'
+                    memory: 32M
+                reservations:
+                    cpus: '0.05'
+                    memory: 16M
+
+    proxy:
+        image: nginx
+        restart: always
+        volumes:
+            - type: bind
+              source: ./proxy/nginx.conf
+              target: /etc/nginx/conf.d/default.conf
+              read_only: true
+        ports:
+            - 80:80
+        depends_on:
+            frontend:
+                condition: service_healthy
+        healthcheck:
+            test: [ 'CMD', 'curl', '-f', 'http://localhost/' ]
+            interval: 3s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+        networks:
+            - frontend-net
+        logging:
+            driver: local
+            options:
+                max-size: '10m'
+                max-file: '3'
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.15'
+                    memory: 32M
+                reservations:
+                    cpus: '0.05'
+                    memory: 16M
+
+    cadvisor:
+        image: ghcr.io/google/cadvisor:latest
+        container_name: cadvisor
+        privileged: true
+        restart: unless-stopped
+        command:
+            - --containerd=/var/run/docker/containerd/containerd.sock
+            - --docker_only
+
+        devices:
+            - /dev/kmsg:/dev/kmsg
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:ro
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+            - /dev/disk/:/dev/disk:ro
+        ports:
+            - "8088:8080"
+        networks:
+            - monitoring-net
+        logging:
+            driver: local
+            options:
+                max-size: '5m'
+                max-file: '2'
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.3"
+                    memory: 200M
+                reservations:
+                    cpus: "0.05"
+                    memory: 100M
+
+    prometheus:
+        image: prom/prometheus:latest
+        container_name: prometheus
+        restart: unless-stopped
+        ports:
+            - 9090:9090
+        command:
+            - --config.file=/etc/prometheus/prometheus.yml
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+        depends_on:
+            - cadvisor
+        networks:
+            - monitoring-net
+        logging:
+            driver: local
+            options:
+                max-size: '5m'
+                max-file: '2'
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.1"
+                    memory: 100M
+                reservations:
+                    cpus: "0.03"
+                    memory: 50M
+
+    grafana:
+        image: grafana/grafana:latest
+        container_name: grafana
+        restart: unless-stopped
+        volumes:
+            - grafana-data:/var/lib/grafana
+        ports:
+            - 3000:3000
+        depends_on:
+            - prometheus
+        networks:
+            - monitoring-net
+        logging:
+            driver: local
+            options:
+                max-size: '5m'
+                max-file: '2'
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.2"
+                    memory: 150M
+                reservations:
+                    cpus: "0.1"
+                    memory: 100M
+
+networks:
+    db-net:
+        internal: true
+    backend-net:
+        internal: true
+    frontend-net:
+    monitoring-net:
+
+volumes:
+    db-data:
+    prometheus-data:
+    grafana-data:
+
+secrets:
+    db-password:
+        file: db/password.txt

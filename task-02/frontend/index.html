@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Manager Pro</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --panel-bg: rgba(255, 255, 255, 0.03);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #a5b4fc, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 0.85rem 1.2rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .list-section {
+            border-top: 1px solid var(--panel-border);
+            padding-top: 1.5rem;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .list-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .count-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        /* Scrollbar styles */
+        ul::-webkit-scrollbar {
+            width: 6px;
+        }
+        ul::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ul::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ul::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        li {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 0.9rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        li:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .item-id {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            margin-right: 0.75rem;
+        }
+
+        .item-name {
+            font-size: 1rem;
+            color: var(--text-main);
+            flex: 1;
+        }
+
+        .delete-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+            line-height: 1;
+            margin-left: 0.75rem;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem 0;
+            font-style: italic;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Item Manager</h1>
+
+        <div class="form-group">
+            <input type="text" id="itemName" placeholder="Enter item name..." autocomplete="off" onkeydown="if (event.key === 'Enter') createItem()">
+            <button onclick="createItem()">Add Item</button>
+        </div>
+
+        <div class="list-section">
+            <div class="list-header">
+                <div class="list-title">Stored Items</div>
+                <div class="count-badge" id="countBadge">0 items</div>
+            </div>
+            <ul id="itemList">
+                <!-- Items populated by JS -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function fetchItems() {
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                if (!response.ok) throw new Error('Failed to fetch items');
+                const items = await response.json();
+                renderItems(items);
+            } catch (error) {
+                console.error('Error fetching items:', error);
+            }
+        }
+
+        function renderItems(items) {
+            const list = document.getElementById('itemList');
+            const badge = document.getElementById('countBadge');
+            badge.innerText = `${items.length} item${items.length === 1 ? '' : 's'}`;
+
+            if (items.length === 0) {
+                list.innerHTML = `<div class="empty-state">No items found. Create one above!</div>`;
+                return;
+            }
+
+            // Reverse items so new items are at the top (stack behavior)
+            const reversedItems = [...items].reverse();
+
+            list.innerHTML = reversedItems.map(item => `
+                <li>
+                    <span class="item-id">#${item.id}</span>
+                    <span class="item-name">${escapeHtml(item.name)}</span>
+                    <button class="delete-btn" onclick="deleteItem(${item.id})" title="Delete item">&times;</button>
+                </li>
+            `).join('');
+        }
+
+        async function createItem() {
+            const input = document.getElementById('itemName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/items`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!response.ok) throw new Error('Failed to create item');
+                
+                input.value = '';
+                await fetchItems();
+            } catch (error) {
+                console.error('Error creating item:', error);
+            }
+        }
+
+        async function deleteItem(id) {
+            try {
+                const response = await fetch(`${API_BASE}/items/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Failed to delete item');
+
+                await fetchItems();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+            }
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Fetch on load
+        fetchItems();
+    </script>
+</body>
+</html>
