@@ -112,6 +112,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "short"
                 },
                 "overrides": []
@@ -144,6 +150,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "bytes"
                 },
                 "overrides": []
@@ -176,6 +188,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "reqps"
                 },
                 "overrides": []
@@ -208,6 +226,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "reqps"
                 },
                 "overrides": [
@@ -256,6 +280,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "s"
                 },
                 "overrides": []
@@ -306,6 +336,12 @@
             ],
             "fieldConfig": {
                 "defaults": {
+                    "custom": {
+                        "drawStyle": "line",
+                        "lineInterpolation": "linear",
+                        "fillOpacity": 15,
+                        "gradientMode": "opacity"
+                    },
                     "unit": "short"
                 },
                 "overrides": []
